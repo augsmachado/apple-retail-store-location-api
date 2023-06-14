@@ -3,5 +3,7 @@ micros:
     - name: backend
       src: .
       engine: python3.9
+      public: true
+      path: api
       run: uvicorn main:app
       dev: .venv/bin/uvicorn main:app --reload

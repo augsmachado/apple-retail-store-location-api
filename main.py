@@ -56,7 +56,7 @@ def read_root():
 
 
 # get all stores
-@app.get("/stores")
+@app.get("/api/v1/stores")
 def get_all_stores(x_api_key: Annotated[Union[str, None], Header()] = None):
     if x_api_key != os.environ.get("CONSUMER_API_KEY"):
         raise HTTPException(
@@ -68,7 +68,7 @@ def get_all_stores(x_api_key: Annotated[Union[str, None], Header()] = None):
 
 
 # request specific store details
-@app.get("/stores/{store_id}")
+@app.get("/api/v1/stores/{store_id}")
 def get_store_details(
     store_id: str, x_api_key: Annotated[Union[str, None], Header()] = None
 ):
@@ -81,7 +81,7 @@ def get_store_details(
 
 
 # create new store
-@app.post("/stores")
+@app.post("/api/v1/stores")
 def post_new_store(
     store: Store, x_api_key: Annotated[Union[str, None], Header()] = None
 ):
@@ -135,7 +135,7 @@ def post_new_store(
 
 
 # update store
-@app.put("/stores/{store_id}")
+@app.put("/api/v1/stores/{store_id}")
 def update_store(
     store_id: str, data: dict, x_api_key: Annotated[Union[str, None], Header()] = None
 ):
@@ -153,7 +153,7 @@ def update_store(
 
 
 # delete store
-@app.delete("/stores/{store_id}")
+@app.delete("/api/v1/stores/{store_id}")
 def delete_store(
     store_id: str, x_api_key: Annotated[Union[str, None], Header()] = None
 ):
