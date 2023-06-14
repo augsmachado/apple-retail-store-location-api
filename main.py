@@ -1,10 +1,10 @@
 import os
 
-from typing import Union
+from typing import Annotated, Union
 from datetime import datetime
 
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from fastapi import FastAPI, HTTPException, Header
+from pydantic import BaseModel, Json
 
 from deta import Deta
 
@@ -39,6 +39,8 @@ class Store(BaseModel):
     zipcode: str
     phone: Union[str, None] = None
     email: Union[str, None] = None
+    latitude: Union[str, None] = None
+    longitude: Union[str, None] = None
 
 
 # get api status
@@ -55,20 +57,39 @@ def read_root():
 
 # get all stores
 @app.get("/stores")
-def get_all_stores():
+def get_all_stores(x_api_key: Annotated[Union[str, None], Header()] = None):
+    if x_api_key != os.environ.get("CONSUMER_API_KEY"):
+        raise HTTPException(
+            status=401, detail="Provide a CONSUMER API KEY to perform this action."
+        )
+
     # to do: add support to pagination and queries
     return db.fetch(query=None, limit=1000, last=None)
 
 
 # request specific store details
 @app.get("/stores/{store_id}")
-def get_store_details(store_id: str):
+def get_store_details(
+    store_id: str, x_api_key: Annotated[Union[str, None], Header()] = None
+):
+    if x_api_key != os.environ.get("CONSUMER_API_KEY"):
+        raise HTTPException(
+            status=401, detail="Provide a CONSUMER API KEY to perform this action."
+        )
+
     return db.get(store_id)
 
 
 # create new store
 @app.post("/stores")
-def post_new_store(store: Store):
+def post_new_store(
+    store: Store, x_api_key: Annotated[Union[str, None], Header()] = None
+):
+    if x_api_key != os.environ.get("ROOT_API_KEY"):
+        raise HTTPException(
+            status=401, detail="Provide a ROOT API KEY to perform this action."
+        )
+
     if len(store.country) <= SMALL_ALLOWED:
         raise HTTPException(status_code=400, detail=f"{store.country} is too short")
 
@@ -106,6 +127,8 @@ def post_new_store(store: Store):
         "zipcode": store.zipcode,
         "phone": phone,
         "email": email,
+        "latitude": store.latitude,
+        "longitude": store.longitude,
     }
 
     return db.put(data)
@@ -113,7 +136,14 @@ def post_new_store(store: Store):
 
 # update store
 @app.put("/stores/{store_id}")
-def update_store(store_id: str, data: dict):
+def update_store(
+    store_id: str, data: dict, x_api_key: Annotated[Union[str, None], Header()] = None
+):
+    if x_api_key != os.environ.get("ROOT_API_KEY"):
+        raise HTTPException(
+            status=401, detail="Provide a ROOT API KEY to perform this action."
+        )
+
     res = db.update(data, store_id)
 
     if res is not None:
@@ -124,7 +154,14 @@ def update_store(store_id: str, data: dict):
 
 # delete store
 @app.delete("/stores/{store_id}")
-def delete_store(store_id: str):
+def delete_store(
+    store_id: str, x_api_key: Annotated[Union[str, None], Header()] = None
+):
+    if x_api_key != os.environ.get("ROOT_API_KEY"):
+        raise HTTPException(
+            status=401, detail="Provide a ROOT API KEY to perform this action."
+        )
+
     db.delete(store_id)
 
     res = db.get(store_id)
