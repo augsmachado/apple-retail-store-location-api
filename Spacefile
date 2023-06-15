@@ -3,7 +3,10 @@ micros:
     - name: backend
       src: .
       engine: python3.9
-      public: true
-      path: api
-      run: uvicorn main:app
+      public_routes:
+          - "/status"
+          - "/docs"
+      presets:
+          api_keys: true
+      run: uvicorn main:app --reload
       dev: .venv/bin/uvicorn main:app --reload
