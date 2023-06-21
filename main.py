@@ -38,7 +38,6 @@ class Store(BaseModel):
     neighborhood: str
     zipcode: str
     phone: Union[str, None] = None
-    email: Union[str, None] = None
     latitude: Union[str, None] = None
     longitude: Union[str, None] = None
 
@@ -96,7 +95,6 @@ def post_new_store(store: Store):
         raise HTTPException(status_code=400, detail=f"{store.zipcode} is too short")
 
     phone = store.phone if store.phone is not None else None
-    email = store.email if store.email is not None else None
 
     data = {
         "country": store.country,
@@ -107,7 +105,6 @@ def post_new_store(store: Store):
         "neighborhood": store.neighborhood,
         "zipcode": store.zipcode,
         "phone": phone,
-        "email": email,
         "latitude": store.latitude,
         "longitude": store.longitude,
         "created_at": str(datetime.utcnow()),
