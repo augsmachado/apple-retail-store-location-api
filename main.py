@@ -38,8 +38,9 @@ class Store(BaseModel):
     neighborhood: str
     zipcode: str
     phone: Union[str, None] = None
-    latitude: Union[str, None] = None
-    longitude: Union[str, None] = None
+    latitude: Union[float, None] = None
+    longitude: Union[float, None] = None
+    link: Union[str, None] = None
 
 
 # get api status
@@ -71,16 +72,24 @@ def get_store_details(store_id: str):
 @app.post("/stores")
 def post_new_store(store: Store):
     if len(store.country) <= SMALL_ALLOWED:
-        raise HTTPException(status_code=400, detail=f"{store.country} is too short")
+        raise HTTPException(
+            status_code=400, detail=f"[COUNTRY] Name {store.country} is too short"
+        )
 
     if len(store.state) <= SMALL_ALLOWED:
-        raise HTTPException(status_code=400, detail=f"{store.state} is too short")
+        raise HTTPException(
+            status_code=400, detail=f"[STATE] Name {store.state} is too short"
+        )
 
     if len(store.city) <= SMALL_ALLOWED:
-        raise HTTPException(status_code=400, detail=f"{store.city} is too short")
+        raise HTTPException(
+            status_code=400, detail=f"[CITY] Name {store.city} is too short"
+        )
 
     if len(store.address) <= SMALL_ALLOWED:
-        raise HTTPException(status_code=400, detail=f"{store.address} is too short")
+        raise HTTPException(
+            status_code=400, detail=f"[ADDRESS] {store.address} is too short"
+        )
 
     # To do: add verification to number passed
     # if store.number > 0 and store.number is not None:
@@ -88,25 +97,31 @@ def post_new_store(store: Store):
 
     if len(store.neighborhood) <= SMALL_ALLOWED:
         raise HTTPException(
-            status_code=400, detail=f"{store.neighborhood} is too short"
+            status_code=400, detail=f"[NEIGHBORHOOD] {store.neighborhood} is too short"
         )
 
     if len(store.zipcode) <= SMALL_ALLOWED:
-        raise HTTPException(status_code=400, detail=f"{store.zipcode} is too short")
+        raise HTTPException(
+            status_code=400, detail=f"[ZIPCODE] {store.zipcode} is too short"
+        )
+
+    if len(store.link) <= SMALL_ALLOWED:
+        raise HTTPException(status_code=400, detail=f"[LINK] {store.link} is too short")
 
     phone = store.phone if store.phone is not None else None
 
     data = {
-        "country": store.country,
-        "state": store.state,
-        "city": store.city,
-        "address": store.address,
+        "country": store.country.upper(),
+        "state": store.state.upper(),
+        "city": store.city.upper(),
+        "address": store.address.upper(),
         "number": store.number,
-        "neighborhood": store.neighborhood,
+        "neighborhood": store.neighborhood.upper(),
         "zipcode": store.zipcode,
         "phone": phone,
         "latitude": store.latitude,
         "longitude": store.longitude,
+        "link": store.link,
         "created_at": str(datetime.utcnow()),
         "updated_at": str(datetime.utcnow()),
     }
