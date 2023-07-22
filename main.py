@@ -1,10 +1,10 @@
 import os
 
-from typing import Annotated, Union
-from datetime import datetime
+from datetime import datetime, timezone
+from typing import Union
 
-from fastapi import FastAPI, HTTPException, Header
-from pydantic import BaseModel, Json
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
 
 from deta import Deta
 
@@ -28,111 +28,147 @@ db = deta.Base("stores")
 app = FastAPI()
 
 
-# Store base model
+# The above class is a subclass of BaseModel and represents a store.
 class Store(BaseModel):
+    code_name: str
     country: str
-    state: str
     city: str
     address: str
     number: int
-    neighborhood: str
-    zipcode: str
+    zipcode: Union[str, None] = None
     phone: Union[str, None] = None
     latitude: Union[float, None] = None
     longitude: Union[float, None] = None
-    link: Union[str, None] = None
+    link: str
 
 
-# get api status
+# Validation methods
+def small_allowed(value):
+    return len(value) > SMALL_ALLOWED
+
+
+# `@app.get("/status")` is a decorator in FastAPI that defines a route for handling GET requests to
+# the "/status" endpoint. When a GET request is made to this endpoint, the function immediately below
+# the decorator (`def read_root():`) will be executed. This function is responsible for returning the
+# current status of the API, including the name, environment, version, and uptime.
 @app.get("/status")
 def read_root():
     return {
         "msg": "Current API status",
         "name": "apple-stores-api",
         "environment": "production",
-        "version": "1.0.0",
+        "version": "1.1.4",
         "uptime": datetime.now(),
     }
 
 
-# get all stores
+# `@app.get("/stores")` is a decorator in FastAPI that defines a route for handling GET requests to
+# the "/stores" endpoint. When a GET request is made to this endpoint, the function immediately below
+# the decorator (`def get_all_stores():`) will be executed. This function is responsible for
+# retrieving and returning all stores from the database.
 @app.get("/stores")
 def get_all_stores():
     # to do: add support to pagination and queries
+
     return db.fetch(query=None, limit=1000, last=None)
 
 
-# request specific store details
+# `@app.get("/stores/{store_id}")` is a decorator in FastAPI that defines a route for handling GET
+# requests to the "/stores/{store_id}" endpoint. When a GET request is made to this endpoint, the
+# function immediately below the decorator (`def get_store_details(store_id: str):`) will be executed.
+# This function is responsible for retrieving and returning the details of a specific store from the
+# database based on the provided `store_id` parameter.
 @app.get("/stores/{store_id}")
 def get_store_details(store_id: str):
     return db.get(store_id)
 
 
-# create new store
+# `@app.post("/stores")` is a decorator in FastAPI that defines a route for handling POST requests to
+# the "/stores" endpoint. When a POST request is made to this endpoint, the function immediately below
+# the decorator (`def post_new_store(store: Store):`) will be executed. This function is responsible
+# for creating a new store in the database based on the provided store data in the request body.
 @app.post("/stores")
 def post_new_store(store: Store):
-    if len(store.country) <= SMALL_ALLOWED:
+    if len(store.code_name) <= SMALL_ALLOWED:
         raise HTTPException(
-            status_code=400, detail=f"[COUNTRY] Name {store.country} is too short"
+            status_code=400, detail=f"[CODE_NAME] Value {store.code_name} is too short"
         )
 
-    if len(store.state) <= SMALL_ALLOWED:
+    if len(store.country) <= SMALL_ALLOWED:
         raise HTTPException(
-            status_code=400, detail=f"[STATE] Name {store.state} is too short"
+            status_code=400, detail=f"[COUNTRY] Value {store.country} is too short"
         )
 
     if len(store.city) <= SMALL_ALLOWED:
         raise HTTPException(
-            status_code=400, detail=f"[CITY] Name {store.city} is too short"
+            status_code=400, detail=f"[CITY] Value {store.city} is too short"
         )
 
     if len(store.address) <= SMALL_ALLOWED:
         raise HTTPException(
-            status_code=400, detail=f"[ADDRESS] {store.address} is too short"
+            status_code=400, detail=f"[ADDRESS] Value {store.address} is too short"
         )
 
-    # To do: add verification to number passed
-    # if store.number > 0 and store.number is not None:
-    #    raise HTTPException(status_code=400, detail="${store.number} is not a number")
-
-    if len(store.neighborhood) <= SMALL_ALLOWED:
-        raise HTTPException(
-            status_code=400, detail=f"[NEIGHBORHOOD] {store.neighborhood} is too short"
-        )
+    number = max(store.number, 0)
 
     if len(store.zipcode) <= SMALL_ALLOWED:
         raise HTTPException(
-            status_code=400, detail=f"[ZIPCODE] {store.zipcode} is too short"
+            status_code=400, detail=f"[ZIPCODE] Value {store.zipcode} is too short"
         )
-
-    if len(store.link) <= SMALL_ALLOWED:
-        raise HTTPException(status_code=400, detail=f"[LINK] {store.link} is too short")
 
     phone = store.phone if store.phone is not None else None
 
+    latitude = store.latitude if store.latitude is not None else None
+
+    longitude = store.longitude if store.longitude is not None else None
+
+    if len(store.link) <= SMALL_ALLOWED:
+        raise HTTPException(
+            status_code=400, detail=f"[LINK] Value {store.link} is too short"
+        )
+
     data = {
+        "code_name": store.code_name.upper(),
         "country": store.country.upper(),
-        "state": store.state.upper(),
         "city": store.city.upper(),
         "address": store.address.upper(),
-        "number": store.number,
-        "neighborhood": store.neighborhood.upper(),
+        "number": number,
         "zipcode": store.zipcode,
         "phone": phone,
-        "latitude": store.latitude,
-        "longitude": store.longitude,
+        "latitude": latitude,
+        "longitude": longitude,
         "link": store.link,
-        "created_at": str(datetime.utcnow()),
-        "updated_at": str(datetime.utcnow()),
+        "created_at": str(datetime.now(timezone.utc)),
+        "updated_at": str(datetime.now(timezone.utc)),
     }
 
     return db.put(data)
 
 
-# update store
+# `@app.put("/stores/{store_id}")` is a decorator in FastAPI that defines a route for handling PUT
+# requests to the "/stores/{store_id}" endpoint. When a PUT request is made to this endpoint, the
+# function immediately below the decorator (`def update_store(store_id: str, store: dict):`) will be
+# executed. This function is responsible for updating the details of a specific store in the database
+# based on the provided `store_id` parameter and the updated store data in the request body.
 @app.put("/stores/{store_id}")
-def update_store(store_id: str, data: dict):
-    # add updated_at
+def update_store(store_id: str, store: dict):
+    res = db.update(store, store_id)
+
+    req = db.get(store_id)
+    data = {
+        "code_name": req["code_name"].upper(),
+        "country": req["country"].upper(),
+        "city": req["city"].upper(),
+        "address": req["address"].upper(),
+        "number": req["number"],
+        "zipcode": req["zipcode"],
+        "phone": req["phone"],
+        "latitude": req["latitude"],
+        "longitude": req["longitude"],
+        "link": req["link"],
+        "created_at": req["created_at"],
+        "updated_at": str(datetime.now(timezone.utc)),
+    }
     res = db.update(data, store_id)
 
     if res is not None:
@@ -141,11 +177,17 @@ def update_store(store_id: str, data: dict):
     return db.get(store_id)
 
 
-# delete store
+# `@app.delete("/stores/{store_id}")` is a decorator in FastAPI that defines a route for handling
+# DELETE requests to the "/stores/{store_id}" endpoint. When a DELETE request is made to this
+# endpoint, the function immediately below the decorator (`def delete_store(store_id: str):`) will be
+# executed. This function is responsible for deleting a specific store from the database based on the
+# provided `store_id` parameter.
 @app.delete("/stores/{store_id}")
 def delete_store(store_id: str):
-    db.delete(store_id)
+    if store_id is None:
+        raise HTTPException(status_code=400, detail=f"Invalid {store_id} to delete")
 
+    db.delete(store_id)
     res = db.get(store_id)
 
     if res is None:
