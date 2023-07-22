@@ -184,9 +184,6 @@ def update_store(store_id: str, store: dict):
 # provided `store_id` parameter.
 @app.delete("/stores/{store_id}")
 def delete_store(store_id: str):
-    if store_id is None:
-        raise HTTPException(status_code=400, detail=f"Invalid {store_id} to delete")
-
     db.delete(store_id)
     res = db.get(store_id)
 
