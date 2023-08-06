@@ -35,7 +35,6 @@ class Store(BaseModel):
     city: str
     address: str
     number: int
-    zipcode: Union[str, None] = None
     phone: Union[str, None] = None
     latitude: Union[float, None] = None
     longitude: Union[float, None] = None
@@ -111,8 +110,6 @@ def post_new_store(store: Store):
 
     number = max(store.number, 0)
 
-    zipcode = store.zipcode if store.zipcode is not None else None
-
     phone = store.phone if store.phone is not None else None
 
     latitude = store.latitude if store.latitude is not None else None
@@ -130,7 +127,6 @@ def post_new_store(store: Store):
         "city": store.city.upper(),
         "address": store.address.upper(),
         "number": number,
-        "zipcode": zipcode,
         "phone": phone,
         "latitude": latitude,
         "longitude": longitude,
