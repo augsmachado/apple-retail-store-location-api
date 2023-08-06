@@ -111,10 +111,7 @@ def post_new_store(store: Store):
 
     number = max(store.number, 0)
 
-    if len(store.zipcode) <= SMALL_ALLOWED:
-        raise HTTPException(
-            status_code=400, detail=f"[ZIPCODE] Value {store.zipcode} is too short"
-        )
+    zipcode = store.zipcode if store.zipcode is not None else None
 
     phone = store.phone if store.phone is not None else None
 
@@ -133,7 +130,7 @@ def post_new_store(store: Store):
         "city": store.city.upper(),
         "address": store.address.upper(),
         "number": number,
-        "zipcode": store.zipcode,
+        "zipcode": zipcode,
         "phone": phone,
         "latitude": latitude,
         "longitude": longitude,
