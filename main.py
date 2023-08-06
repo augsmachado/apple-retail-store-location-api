@@ -154,7 +154,6 @@ def update_store(store_id: str, store: dict):
         "city": req["city"].upper(),
         "address": req["address"].upper(),
         "number": req["number"],
-        "zipcode": req["zipcode"],
         "phone": req["phone"],
         "latitude": req["latitude"],
         "longitude": req["longitude"],
