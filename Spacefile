@@ -4,7 +4,7 @@ micros:
       src: .
       engine: python3.9
       public_routes:
-          - "/status"
+          - "/api/*"
           - "/docs"
       presets:
           api_keys: true

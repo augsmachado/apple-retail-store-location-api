@@ -50,7 +50,7 @@ def small_allowed(value):
 # the "/status" endpoint. When a GET request is made to this endpoint, the function immediately below
 # the decorator (`def read_root():`) will be executed. This function is responsible for returning the
 # current status of the API, including the name, environment, version, and uptime.
-@app.get("/status")
+@app.get("/api/v1/status")
 def read_root():
     return {
         "msg": "Current API status",
@@ -65,11 +65,18 @@ def read_root():
 # the "/stores" endpoint. When a GET request is made to this endpoint, the function immediately below
 # the decorator (`def get_all_stores():`) will be executed. This function is responsible for
 # retrieving and returning all stores from the database.
-@app.get("/stores")
+@app.get("/api/v1/stores")
 def get_all_stores():
     # to do: add support to pagination and queries
 
     return db.fetch(query=None, limit=1000, last=None)
+
+
+@app.get("/api/v1/stores-by-country")
+def get_stores_by_country(country: str):
+    q = {"country": country.upper()}
+
+    return db.fetch(query=q, limit=1000, last=None)
 
 
 # `@app.get("/stores/{store_id}")` is a decorator in FastAPI that defines a route for handling GET
@@ -77,7 +84,7 @@ def get_all_stores():
 # function immediately below the decorator (`def get_store_details(store_id: str):`) will be executed.
 # This function is responsible for retrieving and returning the details of a specific store from the
 # database based on the provided `store_id` parameter.
-@app.get("/stores/{store_id}")
+@app.get("/api/v1/stores/{store_id}")
 def get_store_details(store_id: str):
     return db.get(store_id)
 
