@@ -56,7 +56,7 @@ def read_root():
         "msg": "Current API status",
         "name": "apple-stores-api",
         "environment": "production",
-        "version": "1.1.4",
+        "version": "1.1.5",
         "uptime": datetime.now(),
     }
 
