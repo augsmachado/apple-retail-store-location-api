@@ -86,13 +86,7 @@ def get_stores_by_country(country: str):
 # database based on the provided `store_id` parameter.
 @app.get("/api/v1/stores/{store_id}")
 def get_store_details(store_id: str):
-    res = db.get(store_id)
-
-    try:
-        if res is not None:
-            return res
-    except:
-        raise HTTPException(status_code=404, detail="Store not found")
+    return db.get(store_id)
 
 
 # `@app.post("/stores")` is a decorator in FastAPI that defines a route for handling POST requests to
